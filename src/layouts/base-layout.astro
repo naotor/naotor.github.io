@@ -8,16 +8,41 @@ const { frontmatter } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
     <title>{frontmatter.title}</title>
   </head>
   <body>
+    <h1>{frontmatter.title}</h1>
     <slot />
   </body>
 </html>
+
 <style is:global>
   body {
     color: #354259;
-    background-color: #f9f9f9;
+    font-family: "Zen Maru Gothic", sans-serif;
+    padding: 2.5rem;
+    background-color: #fff;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        transparent 50%,
+        #fff 50%,
+        #fff 100%
+      ),
+      linear-gradient(180deg, #ccc 1px, transparent 1px);
+    background-size:
+      8px 100%,
+      100% 2.5em;
+    line-height: 2.5em;
+  }
+  h1 {
+    padding-bottom: 2.5rem;
   }
   a {
     color: #354259;
