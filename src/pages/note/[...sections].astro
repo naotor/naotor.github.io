@@ -1,0 +1,89 @@
+---
+import type { MarkdownInstance } from "astro";
+import path from "node:path";
+import BaseLayout from "../../layouts/base-layout.astro";
+import CardLayout from "../../components/layouts/card-layout.svelte";
+import Phrase from "../../components/audio/phrase.svelte";
+import Word from "../../components/audio/word.svelte";
+
+interface Note {
+  title: string;
+  sentence: string;
+  words: { [w in string]: string | Omit<Word, "en"> }[];
+  phonetic?: boolean;
+}
+
+interface Props {
+  note: MarkdownInstance<Note>;
+}
+
+export async function getStaticPaths() {
+  const notes: any[] = await Astro.glob("./../../contents/**/*.mdx");
+
+  return notes.map((note: MarkdownInstance<Note>) => {
+    const filepath = note.file;
+    const segments = filepath.split("/");
+    const rootIdx = segments.findIndex((seg: string) => seg === "contents");
+    const slugs = segments
+      .slice(rootIdx + 1)
+      .map((slug: string) => path.basename(slug, ".mdx"));
+
+    return {
+      params: { sections: slugs.join("/") },
+      props: { note },
+    };
+  });
+}
+
+const { note } = Astro.props;
+const { frontmatter, Content } = note;
+const { sentence = "", words: _words = [], phonetic = false } = frontmatter;
+
+const phrases = sentence.split("\n").map((str) => {
+  const _ja = str.match(/<ja>(.*)<\/ja>/);
+  const ja = _ja ? _ja[1] : "";
+  const en = str.replace(`<ja>${ja}</ja>`, "");
+  return { en, ja };
+});
+
+const words: Word[] = _words.map((word) => {
+  const [en] = Object.keys(word);
+  const [info] = Object.values(word);
+  if (typeof info === "string") {
+    return { en, ja: info };
+  }
+  return { en, ...info };
+});
+---
+
+<BaseLayout frontmatter={frontmatter}>
+  <div class="root">
+    <div class="main">
+      <div>
+        {
+          phrases.map((ph, i) =>
+            ph.en.length > 0 ? (
+              <Phrase client:load phrase={{ ...ph }} />
+            ) : (
+              <br />
+            ),
+          )
+        }
+      </div>
+      <Content />
+      <CardLayout>
+        {words.map((word) => <Word client:load word={word} />)}
+      </CardLayout>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .root {
+    display: flex;
+  }
+  .main {
+    width: calc(100vw - 400px);
+    padding-right: 5rem;
+  }
+</style>
